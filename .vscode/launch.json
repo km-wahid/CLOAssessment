@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-CloEvaluatorApplication<clo-evaluator>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.clo.CloEvaluatorApplication",
+            "projectName": "clo-evaluator",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
