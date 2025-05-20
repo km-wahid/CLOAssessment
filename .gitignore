@@ -1,3 +1,15 @@
+# Maven target directory
+/target/
+
+# Logs
+*.log
+
+# OS Files
+.DS_Store
+
+
+
+# VS Code
 .vscode/
-pom.xml/
-Dockerfile/
+
+
