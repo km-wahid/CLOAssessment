@@ -4,34 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CLO Evaluation Form</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        // Tailwind CSS Custom Configuration (Optional)
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                }
-            }
-        }
-    </script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <style>
-        /* Custom styles for better visual appeal if needed, or to override Tailwind defaults */
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Arial', sans-serif; /* Bootstrap default or your preferred font */
+            background-color: #f8f9fa;
         }
-        /* Ensuring dynamically added elements also get some base styling if not covered by Tailwind classes added via JS */
-        #scoresContainer label {
-            display: block; /* Or inline-block with width as needed */
-            margin-bottom: 0.5rem; /* mb-2 */
+        .container-custom {
+            max-width: 960px; /* Or your preferred max-width */
         }
-        #scoresContainer input[type="number"] {
-            padding: 0.5rem; /* p-2 */
-            border-width: 1px; /* border */
-            border-radius: 0.375rem; /* rounded-md */
-            /* Add more Tailwind-equivalent styles if inputs are not getting them */
+        /* Optional: Custom styling for dynamically added elements if needed, though Bootstrap classes should cover most */
+        #scoresContainer .card-body {
+             padding: 1.5rem; /* Adjust padding for student cards */
         }
     </style>
     <script>
@@ -42,12 +26,12 @@
             container.innerHTML = ''; // Clear previous content
 
             if (!assessmentType) {
-                 container.innerHTML = '<p class="text-center text-red-600 font-semibold p-4 bg-red-100 rounded-md">Please select an assessment type first.</p>';
+                 container.innerHTML = '<div class="alert alert-warning text-center" role="alert">Please select an assessment type first.</div>';
                 return;
             }
 
             if (!totalStudents || totalStudents <= 0) {
-                container.innerHTML = '<p class="text-center text-red-600 font-semibold p-4 bg-red-100 rounded-md">Please enter a valid number of students (minimum 1).</p>';
+                container.innerHTML = '<div class="alert alert-danger text-center" role="alert">Please enter a valid number of students (minimum 1).</div>';
                 return;
             }
 
@@ -65,160 +49,171 @@
                 cloCount = 1;
                 maxMarks = [10];
             } else {
-                // Handle case where assessment type might be selected but no CLO structure defined
-                container.innerHTML = '<p class="text-center text-yellow-600 font-semibold p-4 bg-yellow-100 rounded-md">CLO structure not defined for the selected assessment type.</p>';
+                container.innerHTML = '<div class="alert alert-info text-center" role="alert">CLO structure not defined for the selected assessment type.</div>';
                 return;
             }
 
-
             for (let i = 0; i < totalStudents; i++) {
-                const studentDiv = document.createElement('div');
-                // Styling for each student's section
-                studentDiv.className = 'bg-white p-6 rounded-lg shadow-md mb-6';
-                studentDiv.innerHTML = `<h4 class="text-xl font-semibold text-gray-700 mb-4">Student ${i + 1}</h4>`;
+                const studentCard = document.createElement('div');
+                studentCard.className = 'card shadow-sm mb-4'; // Bootstrap card for each student
+
+                const studentCardHeader = document.createElement('div');
+                studentCardHeader.className = 'card-header bg-light';
+                studentCardHeader.innerHTML = `<h5 class="mb-0">Student ${i + 1}</h5>`;
+                studentCard.appendChild(studentCardHeader);
+
+                const studentCardBody = document.createElement('div');
+                studentCardBody.className = 'card-body';
+
 
                 for (let j = 0; j < cloCount; j++) {
-                    const fieldContainer = document.createElement('div');
-                    fieldContainer.className = 'mb-4'; // Spacing between CLO fields
+                    const formGroup = document.createElement('div');
+                    formGroup.className = 'mb-3'; // Bootstrap form group
 
                     const label = document.createElement('label');
                     label.textContent = `CLO ${j + 1} (Max ${maxMarks[j]}): `;
-                    // Styling for labels
-                    label.className = 'block text-sm font-medium text-gray-700 mb-1';
+                    label.className = 'form-label'; // Bootstrap label
+                    label.htmlFor = `student_${i}_clo_${j}`;
 
                     const input = document.createElement('input');
                     input.type = 'number';
                     input.name = `student_${i}_clo_${j}`;
+                    input.id = `student_${i}_clo_${j}`;
                     input.min = 0;
                     input.max = maxMarks[j];
                     input.step = '0.01';
                     input.required = true;
-                    // Styling for input fields
-                    input.className = 'mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm';
+                    input.className = 'form-control'; // Bootstrap form control
 
-                    fieldContainer.appendChild(label);
-                    fieldContainer.appendChild(input);
-                    studentDiv.appendChild(fieldContainer);
+                    formGroup.appendChild(label);
+                    formGroup.appendChild(input);
+                    // Placeholder for Bootstrap validation feedback
+                    const invalidFeedbackDiv = document.createElement('div');
+                    invalidFeedbackDiv.className = 'invalid-feedback';
+                    formGroup.appendChild(invalidFeedbackDiv);
+
+                    studentCardBody.appendChild(formGroup);
                 }
-                container.appendChild(studentDiv);
+                studentCard.appendChild(studentCardBody);
+                container.appendChild(studentCard);
             }
         }
 
         function validateForm() {
             const inputs = document.querySelectorAll('#scoresContainer input[type="number"]');
             let allValid = true;
-            // Clear previous custom error messages
-            document.querySelectorAll('.custom-error-message').forEach(el => el.remove());
 
-            for (const input of inputs) {
+            // Clear previous general error messages
+            const generalErrorArea = document.getElementById('generalErrorArea');
+            if (generalErrorArea) generalErrorArea.innerHTML = '';
+
+
+            inputs.forEach(input => {
+                // Clear previous validation states and messages for this input
+                input.classList.remove('is-invalid', 'is-valid');
+                const feedbackDiv = input.parentNode.querySelector('.invalid-feedback');
+                if (feedbackDiv) feedbackDiv.textContent = '';
+
                 const max = parseFloat(input.max);
                 const val = parseFloat(input.value);
                 const min = parseFloat(input.min);
 
-                // Remove existing error styling
-                input.classList.remove('border-red-500', 'focus:ring-red-500', 'focus:border-red-500');
-
-
                 if (input.required && (input.value === '' || input.value === null)) {
                     allValid = false;
-                    input.classList.add('border-red-500', 'focus:ring-red-500', 'focus:border-red-500');
-                    const errorMsg = document.createElement('p');
-                    errorMsg.className = 'custom-error-message text-xs text-red-600 mt-1';
-                    errorMsg.textContent = 'This field is required.';
-                    input.parentNode.appendChild(errorMsg);
-                } else if (val < min || val > max) {
+                    input.classList.add('is-invalid');
+                    if (feedbackDiv) feedbackDiv.textContent = 'This field is required.';
+                } else if (input.value !== '' && (val < min || val > max)) {
                     allValid = false;
-                    input.classList.add('border-red-500', 'focus:ring-red-500', 'focus:border-red-500');
-                    const errorMsg = document.createElement('p');
-                    errorMsg.className = 'custom-error-message text-xs text-red-600 mt-1';
-                    errorMsg.textContent = `Score must be between ${min} and ${max}.`;
-                    input.parentNode.appendChild(errorMsg);
-                    // We use custom messages now, so alert can be removed or kept as a general fallback
-                    // alert(`Invalid score for ${input.name}. Must be between ${min} and ${max}. You entered: ${val}`);
+                    input.classList.add('is-invalid');
+                    if (feedbackDiv) feedbackDiv.textContent = `Score must be between ${min} and ${max}.`;
+                } else if (input.value !== '') {
+                    input.classList.add('is-valid'); // Optional: style valid inputs
                 }
-            }
+            });
+
             if (!allValid) {
-                 // Optionally, display a general error message at the top of the form or near the submit button
-                const generalErrorArea = document.getElementById('generalErrorArea');
                 if (generalErrorArea) {
-                    generalErrorArea.innerHTML = '<p class="text-red-600 font-semibold p-3 bg-red-100 rounded-md text-center">Please correct the errors in the form.</p>';
+                    generalErrorArea.innerHTML = '<div class="alert alert-danger text-center" role="alert">Please correct the errors in the form.</div>';
                 } else {
-                    // Fallback if the specific error area isn't present
-                     alert("Please correct the errors highlighted in the form.");
+                     alert("Please correct the errors highlighted in the form."); // Fallback
                 }
-            } else {
-                 const generalErrorArea = document.getElementById('generalErrorArea');
-                 if(generalErrorArea) generalErrorArea.innerHTML = ''; // Clear general error if all is fine
             }
             return allValid;
         }
     </script>
 </head>
-<body class="bg-gradient-to-r from-blue-50 to-indigo-100 min-h-screen flex flex-col items-center justify-center py-8 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-4xl w-full space-y-8 p-10 bg-white shadow-xl rounded-xl">
-        <div>
-            <h2 class="mt-6 text-center text-4xl font-extrabold text-gray-900">
-                CLO Evaluation Form
-            </h2>
-            <p class="mt-2 text-center text-sm text-gray-600">
-                Fill in the details below to evaluate Course Learning Outcomes.
-            </p>
+<body class="d-flex flex-column align-items-center justify-content-center min-vh-100 py-4">
+    <div class="container container-custom">
+        <div class="card shadow-lg p-3 p-md-4 p-lg-5">
+            <div class="card-body">
+                <h2 class="card-title text-center fw-bold mb-4">
+                    CLO Evaluation Form
+                </h2>
+                <p class="text-center text-muted mb-4">
+                    Fill in the details below to evaluate Course Learning Outcomes.
+                </p>
+
+                <div id="generalErrorArea" class="mb-3"></div>
+
+                <form action="/evaluate" method="post" onsubmit="return validateForm()" class="needs-validation" novalidate>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label for="assessmentType" class="form-label">Assessment Type:</label>
+                            <select id="assessmentType" name="assessmentType" onchange="updateForm()" required class="form-select">
+                                <option value="">Select Type...</option>
+                                <option value="Midterm">Midterm</option>
+                                <option value="Final">Final</option>
+                                <option value="Assignment">Assignment</option>
+                            </select>
+                            <div class="invalid-feedback">Please select an assessment type.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="totalStudents" class="form-label">Total Number of Students:</label>
+                            <input type="number" id="totalStudents" name="totalStudents" min="1" onchange="updateForm()" required class="form-control">
+                            <div class="invalid-feedback">Please enter a valid number of students.</div>
+                        </div>
+                    </div>
+
+                    <div id="scoresContainer" class="mb-4">
+                        <p class="text-center text-muted p-3" id="initialMessage">Please select an assessment type and enter the number of students to populate scores.</p>
+                    </div>
+
+                    <div th:if="${error}" class="alert alert-danger mt-3" role="alert">
+                        <h6 class="alert-heading">Error!</h6>
+                        <p th:text="${error}"></p>
+                    </div>
+
+                    <div class="mt-4 d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            Submit Evaluation
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
-
-        <div id="generalErrorArea" class="mt-4"></div>
-
-
-        <form action="/evaluate" method="post" onsubmit="return validateForm()" class="mt-8 space-y-6">
-            <div class="rounded-md shadow-sm -space-y-px">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div>
-                        <label for="assessmentType" class="block text-sm font-medium text-gray-700">Assessment Type:</label>
-                        <select id="assessmentType" name="assessmentType" onchange="updateForm()" required
-                                class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md appearance-none">
-                            <option value="">Select Type...</option>
-                            <option value="Midterm">Midterm</option>
-                            <option value="Final">Final</option>
-                            <option value="Assignment">Assignment</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="totalStudents" class="block text-sm font-medium text-gray-700">Total Number of Students:</label>
-                        <input type="number" id="totalStudents" name="totalStudents" min="1" onchange="updateForm()" required
-                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                    </div>
-                </div>
-            </div>
-
-            <div id="scoresContainer" class="space-y-6">
-                <p class="text-center text-gray-500 p-4" id="initialMessage">Please select an assessment type and enter the number of students to populate scores.</p>
-            </div>
-
-            <div th:if="${error}" class="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-md" role="alert">
-                <p class="font-bold">Error!</p>
-                <p th:text="${error}"></p>
-            </div>
-
-
-            <div class="mt-8">
-                <button type="submit"
-                        class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">
-                    Submit Evaluation
-                </button>
-            </div>
-        </form>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script>
-        // Initial call to updateForm to handle pre-filled values or show initial message if needed
-        // updateForm(); // Or call it based on specific conditions, e.g., if fields have initial values
-        // For now, let the initial message in scoresContainer handle the empty state.
          document.addEventListener('DOMContentLoaded', function() {
-            // Remove initial message if form is already populated (e.g. by browser back button with filled fields)
             if (document.getElementById('assessmentType').value && document.getElementById('totalStudents').value > 0) {
                 const initialMsgElement = document.getElementById('initialMessage');
                 if (initialMsgElement) initialMsgElement.style.display = 'none';
-                updateForm(); // Populate form if fields were pre-filled
+                updateForm();
             }
+
+            // Bootstrap's own form validation handling (optional, if you want to use it alongside your custom JS)
+            // var forms = document.querySelectorAll('.needs-validation');
+            // Array.prototype.slice.call(forms)
+            //     .forEach(function (form) {
+            //         form.addEventListener('submit', function (event) {
+            //             if (!form.checkValidity()) {
+            //                 event.preventDefault();
+            //                 event.stopPropagation();
+            //             }
+            //             form.classList.add('was-validated');
+            //         }, false);
+            //     });
         });
     </script>
 </body>
