@@ -13,9 +13,12 @@
         .container-custom {
             max-width: 960px; /* Or your preferred max-width */
         }
-        /* Optional: Custom styling for dynamically added elements if needed, though Bootstrap classes should cover most */
         #scoresContainer .card-body {
              padding: 1.5rem; /* Adjust padding for student cards */
+        }
+        /* Custom styling for feedback messages in JavaScript if needed */
+        .invalid-feedback.custom-js-error {
+            display: block; /* Ensure JS-added messages are visible */
         }
     </style>
     <script>
@@ -24,6 +27,9 @@
             const totalStudents = parseInt(document.getElementById('totalStudents').value);
             const container = document.getElementById('scoresContainer');
             container.innerHTML = ''; // Clear previous content
+            const initialMessageElement = document.getElementById('initialMessage');
+            if(initialMessageElement) initialMessageElement.style.display = 'none';
+
 
             if (!assessmentType) {
                  container.innerHTML = '<div class="alert alert-warning text-center" role="alert">Please select an assessment type first.</div>';
@@ -89,7 +95,7 @@
                     formGroup.appendChild(input);
                     // Placeholder for Bootstrap validation feedback
                     const invalidFeedbackDiv = document.createElement('div');
-                    invalidFeedbackDiv.className = 'invalid-feedback';
+                    invalidFeedbackDiv.className = 'invalid-feedback custom-js-error'; // Added custom class for JS targeting
                     formGroup.appendChild(invalidFeedbackDiv);
 
                     studentCardBody.appendChild(formGroup);
@@ -111,7 +117,7 @@
             inputs.forEach(input => {
                 // Clear previous validation states and messages for this input
                 input.classList.remove('is-invalid', 'is-valid');
-                const feedbackDiv = input.parentNode.querySelector('.invalid-feedback');
+                const feedbackDiv = input.parentNode.querySelector('.invalid-feedback.custom-js-error');
                 if (feedbackDiv) feedbackDiv.textContent = '';
 
                 const max = parseFloat(input.max);
@@ -122,7 +128,7 @@
                     allValid = false;
                     input.classList.add('is-invalid');
                     if (feedbackDiv) feedbackDiv.textContent = 'This field is required.';
-                } else if (input.value !== '' && (val < min || val > max)) {
+                } else if (input.value !== '' && (isNaN(val) || val < min || val > max)) { // Added isNaN(val) check
                     allValid = false;
                     input.classList.add('is-invalid');
                     if (feedbackDiv) feedbackDiv.textContent = `Score must be between ${min} and ${max}.`;
@@ -179,7 +185,7 @@
                     </div>
 
                     <div th:if="${error}" class="alert alert-danger mt-3" role="alert">
-                        <h6 class="alert-heading">Error!</h6>
+                        <h6 class="alert-heading fw-bold">Error!</h6>
                         <p th:text="${error}"></p>
                     </div>
 
@@ -196,24 +202,30 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script>
          document.addEventListener('DOMContentLoaded', function() {
-            if (document.getElementById('assessmentType').value && document.getElementById('totalStudents').value > 0) {
+            const assessmentTypeEl = document.getElementById('assessmentType');
+            const totalStudentsEl = document.getElementById('totalStudents');
+
+            if (assessmentTypeEl.value && totalStudentsEl.value && parseInt(totalStudentsEl.value) > 0) {
                 const initialMsgElement = document.getElementById('initialMessage');
                 if (initialMsgElement) initialMsgElement.style.display = 'none';
                 updateForm();
             }
 
-            // Bootstrap's own form validation handling (optional, if you want to use it alongside your custom JS)
-            // var forms = document.querySelectorAll('.needs-validation');
-            // Array.prototype.slice.call(forms)
-            //     .forEach(function (form) {
-            //         form.addEventListener('submit', function (event) {
-            //             if (!form.checkValidity()) {
-            //                 event.preventDefault();
-            //                 event.stopPropagation();
-            //             }
-            //             form.classList.add('was-validated');
-            //         }, false);
-            //     });
+            // This is for Bootstrap's native validation UI, works alongside the custom one.
+            var forms = document.querySelectorAll('.needs-validation');
+            Array.prototype.slice.call(forms)
+                .forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
+                        // Custom validation will run first via onsubmit="return validateForm()"
+                        // If custom validation fails, it returns false, preventing Bootstrap's check.
+                        // If custom validation passes, then check Bootstrap's native checkValidity()
+                        if (!form.checkValidity()) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                        form.classList.add('was-validated');
+                    }, false);
+                });
         });
     </script>
 </body>
