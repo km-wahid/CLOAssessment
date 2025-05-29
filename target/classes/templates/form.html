@@ -1,110 +1,60 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CLO Evaluation Form</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Tailwind CSS Custom Configuration (Optional)
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
     <style>
+        /* Custom styles for better visual appeal if needed, or to override Tailwind defaults */
         body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
-            background-color: #f7f7f7;
-            color: #333;
+            font-family: 'Inter', sans-serif;
         }
-    
-        h2 {
-            color: #2c3e50;
-            text-align: center;
+        /* Ensuring dynamically added elements also get some base styling if not covered by Tailwind classes added via JS */
+        #scoresContainer label {
+            display: block; /* Or inline-block with width as needed */
+            margin-bottom: 0.5rem; /* mb-2 */
         }
-    
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background-color: #fff;
-            margin-top: 20px;
-        }
-    
-        th, td {
-            border: 1px solid #ccc;
-            padding: 10px;
-            text-align: center;
-        }
-    
-        th {
-            background-color: #3498db;
-            color: white;
-        }
-    
-        tr:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-    
-        label {
-            font-weight: bold;
-            display: inline-block;
-            width: 200px;
-            margin-bottom: 5px;
-        }
-    
-        input[type="number"], select {
-            padding: 5px;
-            margin-bottom: 10px;
-            width: 100px;
-        }
-    
-        button {
-            padding: 10px 20px;
-            background-color: #2ecc71;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-    
-        button:hover {
-            background-color: #27ae60;
-        }
-    
-        #scoresContainer div {
-            background-color: #ffffff;
-            border: 1px solid #ddd;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 5px;
-        }
-    
-        a {
-            display: inline-block;
-            margin-top: 20px;
-            text-decoration: none;
-            color: #2980b9;
-        }
-    
-        a:hover {
-            text-decoration: underline;
-        }
-    
-        .error {
-            color: red;
-            font-weight: bold;
-            margin-top: 20px;
+        #scoresContainer input[type="number"] {
+            padding: 0.5rem; /* p-2 */
+            border-width: 1px; /* border */
+            border-radius: 0.375rem; /* rounded-md */
+            /* Add more Tailwind-equivalent styles if inputs are not getting them */
         }
     </style>
-    
-    <title>CLO Evaluation Form</title>
     <script>
         function updateForm() {
             const assessmentType = document.getElementById('assessmentType').value;
             const totalStudents = parseInt(document.getElementById('totalStudents').value);
             const container = document.getElementById('scoresContainer');
-            container.innerHTML = '';
+            container.innerHTML = ''; // Clear previous content
+
+            if (!assessmentType) {
+                 container.innerHTML = '<p class="text-center text-red-600 font-semibold p-4 bg-red-100 rounded-md">Please select an assessment type first.</p>';
+                return;
+            }
 
             if (!totalStudents || totalStudents <= 0) {
-                container.innerHTML = '<p>Please enter a valid number of students.</p>';
+                container.innerHTML = '<p class="text-center text-red-600 font-semibold p-4 bg-red-100 rounded-md">Please enter a valid number of students (minimum 1).</p>';
                 return;
             }
 
             let cloCount = 0;
             let maxMarks = [];
 
+            // Define CLO structures based on assessment type
             if (assessmentType === 'Midterm') {
                 cloCount = 4;
                 maxMarks = [5, 5, 5, 5];
@@ -114,64 +64,162 @@
             } else if (assessmentType === 'Assignment') {
                 cloCount = 1;
                 maxMarks = [10];
+            } else {
+                // Handle case where assessment type might be selected but no CLO structure defined
+                container.innerHTML = '<p class="text-center text-yellow-600 font-semibold p-4 bg-yellow-100 rounded-md">CLO structure not defined for the selected assessment type.</p>';
+                return;
             }
+
 
             for (let i = 0; i < totalStudents; i++) {
                 const studentDiv = document.createElement('div');
-                studentDiv.innerHTML = '<h4>Student ' + (i + 1) + '</h4>';
+                // Styling for each student's section
+                studentDiv.className = 'bg-white p-6 rounded-lg shadow-md mb-6';
+                studentDiv.innerHTML = `<h4 class="text-xl font-semibold text-gray-700 mb-4">Student ${i + 1}</h4>`;
+
                 for (let j = 0; j < cloCount; j++) {
+                    const fieldContainer = document.createElement('div');
+                    fieldContainer.className = 'mb-4'; // Spacing between CLO fields
+
                     const label = document.createElement('label');
-                    label.textContent = 'CLO ' + (j + 1) + ' (Max ' + maxMarks[j] + '): ';
+                    label.textContent = `CLO ${j + 1} (Max ${maxMarks[j]}): `;
+                    // Styling for labels
+                    label.className = 'block text-sm font-medium text-gray-700 mb-1';
+
                     const input = document.createElement('input');
                     input.type = 'number';
-                    input.name = 'student_' + i + '_clo_' + j;
+                    input.name = `student_${i}_clo_${j}`;
                     input.min = 0;
                     input.max = maxMarks[j];
                     input.step = '0.01';
                     input.required = true;
-                    label.appendChild(input);
-                    studentDiv.appendChild(label);
-                    studentDiv.appendChild(document.createElement('br'));
+                    // Styling for input fields
+                    input.className = 'mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm';
+
+                    fieldContainer.appendChild(label);
+                    fieldContainer.appendChild(input);
+                    studentDiv.appendChild(fieldContainer);
                 }
                 container.appendChild(studentDiv);
             }
         }
+
+        function validateForm() {
+            const inputs = document.querySelectorAll('#scoresContainer input[type="number"]');
+            let allValid = true;
+            // Clear previous custom error messages
+            document.querySelectorAll('.custom-error-message').forEach(el => el.remove());
+
+            for (const input of inputs) {
+                const max = parseFloat(input.max);
+                const val = parseFloat(input.value);
+                const min = parseFloat(input.min);
+
+                // Remove existing error styling
+                input.classList.remove('border-red-500', 'focus:ring-red-500', 'focus:border-red-500');
+
+
+                if (input.required && (input.value === '' || input.value === null)) {
+                    allValid = false;
+                    input.classList.add('border-red-500', 'focus:ring-red-500', 'focus:border-red-500');
+                    const errorMsg = document.createElement('p');
+                    errorMsg.className = 'custom-error-message text-xs text-red-600 mt-1';
+                    errorMsg.textContent = 'This field is required.';
+                    input.parentNode.appendChild(errorMsg);
+                } else if (val < min || val > max) {
+                    allValid = false;
+                    input.classList.add('border-red-500', 'focus:ring-red-500', 'focus:border-red-500');
+                    const errorMsg = document.createElement('p');
+                    errorMsg.className = 'custom-error-message text-xs text-red-600 mt-1';
+                    errorMsg.textContent = `Score must be between ${min} and ${max}.`;
+                    input.parentNode.appendChild(errorMsg);
+                    // We use custom messages now, so alert can be removed or kept as a general fallback
+                    // alert(`Invalid score for ${input.name}. Must be between ${min} and ${max}. You entered: ${val}`);
+                }
+            }
+            if (!allValid) {
+                 // Optionally, display a general error message at the top of the form or near the submit button
+                const generalErrorArea = document.getElementById('generalErrorArea');
+                if (generalErrorArea) {
+                    generalErrorArea.innerHTML = '<p class="text-red-600 font-semibold p-3 bg-red-100 rounded-md text-center">Please correct the errors in the form.</p>';
+                } else {
+                    // Fallback if the specific error area isn't present
+                     alert("Please correct the errors highlighted in the form.");
+                }
+            } else {
+                 const generalErrorArea = document.getElementById('generalErrorArea');
+                 if(generalErrorArea) generalErrorArea.innerHTML = ''; // Clear general error if all is fine
+            }
+            return allValid;
+        }
     </script>
 </head>
-<body>
-<h2>CLO Evaluation Form</h2>
-<form action="/evaluate" method="post" onsubmit="return validateForm()">
-    <label for="assessmentType">Assessment Type:</label>
-    <select id="assessmentType" name="assessmentType" onchange="updateForm()" required>
-        <option value="">Select</option>
-        <option value="Midterm">Midterm</option>
-        <option value="Final">Final</option>
-        <option value="Assignment">Assignment</option>
-    </select>
-    <br><br>
-    <label for="totalStudents">Total Number of Students:</label>
-    <input type="number" id="totalStudents" name="totalStudents" min="1" onchange="updateForm()" required>
-    <br><br>
-    <div id="scoresContainer"></div>
-    <br>
-    <button type="submit">Submit</button>
-</form>
-<script>
-    function validateForm() {
-        const inputs = document.querySelectorAll('#scoresContainer input[type="number"]');
-        for (const input of inputs) {
-            const max = parseFloat(input.max);
-            const val = parseFloat(input.value);
-            if (val < 0 || val > max) {
-                alert('Invalid score: ' + val + '. Must be between 0 and ' + max);
-                return false;
+<body class="bg-gradient-to-r from-blue-50 to-indigo-100 min-h-screen flex flex-col items-center justify-center py-8 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl w-full space-y-8 p-10 bg-white shadow-xl rounded-xl">
+        <div>
+            <h2 class="mt-6 text-center text-4xl font-extrabold text-gray-900">
+                CLO Evaluation Form
+            </h2>
+            <p class="mt-2 text-center text-sm text-gray-600">
+                Fill in the details below to evaluate Course Learning Outcomes.
+            </p>
+        </div>
+
+        <div id="generalErrorArea" class="mt-4"></div>
+
+
+        <form action="/evaluate" method="post" onsubmit="return validateForm()" class="mt-8 space-y-6">
+            <div class="rounded-md shadow-sm -space-y-px">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label for="assessmentType" class="block text-sm font-medium text-gray-700">Assessment Type:</label>
+                        <select id="assessmentType" name="assessmentType" onchange="updateForm()" required
+                                class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md appearance-none">
+                            <option value="">Select Type...</option>
+                            <option value="Midterm">Midterm</option>
+                            <option value="Final">Final</option>
+                            <option value="Assignment">Assignment</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="totalStudents" class="block text-sm font-medium text-gray-700">Total Number of Students:</label>
+                        <input type="number" id="totalStudents" name="totalStudents" min="1" onchange="updateForm()" required
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                </div>
+            </div>
+
+            <div id="scoresContainer" class="space-y-6">
+                <p class="text-center text-gray-500 p-4" id="initialMessage">Please select an assessment type and enter the number of students to populate scores.</p>
+            </div>
+
+            <div th:if="${error}" class="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-md" role="alert">
+                <p class="font-bold">Error!</p>
+                <p th:text="${error}"></p>
+            </div>
+
+
+            <div class="mt-8">
+                <button type="submit"
+                        class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">
+                    Submit Evaluation
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Initial call to updateForm to handle pre-filled values or show initial message if needed
+        // updateForm(); // Or call it based on specific conditions, e.g., if fields have initial values
+        // For now, let the initial message in scoresContainer handle the empty state.
+         document.addEventListener('DOMContentLoaded', function() {
+            // Remove initial message if form is already populated (e.g. by browser back button with filled fields)
+            if (document.getElementById('assessmentType').value && document.getElementById('totalStudents').value > 0) {
+                const initialMsgElement = document.getElementById('initialMessage');
+                if (initialMsgElement) initialMsgElement.style.display = 'none';
+                updateForm(); // Populate form if fields were pre-filled
             }
-        }
-        return true;
-    }
-</script>
-<div style="color:red;">
-    <p th:text="${error}"></p>
-</div>
+        });
+    </script>
 </body>
 </html>
