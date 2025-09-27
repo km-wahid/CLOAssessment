@@ -143,5 +143,5 @@ This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) f
 ## Contact
 
 **Author:** Khalid Muhammad
-**Email:** [your.email@example.com](mailto:your.email@example.com)
-**GitHub:** [https://github.com/yourusername](https://github.com/yourusername)
+**Email:** khalidmuhammad.official.com
+**GitHub:** [[https://github.com/km-wahid](https://github.com/km-wahid)]
